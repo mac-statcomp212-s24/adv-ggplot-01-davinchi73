@@ -1,7 +1,7 @@
 ---
 title: "Advanced visualization with ggplot2"
 subtitle: "Challenge 1"
-author: "YOUR NAME"
+author: "Devinn Chi"
 format: 
   html:
     self-contained: true
@@ -45,18 +45,45 @@ You will need to use reference pages and documentation to discover necessary too
 # Setup
 
 ```{r}
-# Code for loading packages and reading in data
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+weather <- read_csv("https://lmyint.github.io/212_spring_2024/data/sfo_weather.csv")
 ```
 
 
 
 # Visualization
 
+## Temperature Graph
 ```{r}
-# Code for recreating the visualization
-# Use as many code chunks as you need to organize your work well
+month_starts <- weather %>%
+  filter(Day==1, Month!=1)  #dont need january so month != 1
+
+month_startsLabels <- weather %>%
+  filter(Day==1)
+
+ggplot(weather) + 
+    labs(title = "Temperature") +
+    geom_linerange(mapping = aes(x = dateInYear, ymin = RecordLow, ymax = RecordHigh), color = "#ecebe3", linewidth = 1.2) +
+    geom_linerange(mapping = aes(x = dateInYear, ymin = NormalLow, ymax = NormalHigh),  color = "#C8B8BA", linewidth = 1.2) +
+    geom_linerange(mapping = aes(x = dateInYear, ymin = Low, ymax = High), color = "#A90048", linewidth = 1.2) +
+    geom_vline(data = month_starts, mapping = aes(xintercept = dateInYear), lty = "dashed", alpha = 0.1) +
+    scale_x_continuous(breaks = month_startsLabels$dateInYear + 15, labels = month.abb) +
+  theme_classic()
 ```
 
+## Precipitation Graph
+```{r}
+month_starts2 <- weather %>%
+  filter(Day==1)
+
+ggplot(weather) + 
+  geom_area(mapping = aes(x = dateInYear, y = CulmPrec), fill = "#ebeae2") + 
+  geom_path(mapping = aes(x = dateInYear, y = CulmPrec, group = Month), color = "#32a3d8", size = 0.55) +
+  geom_text(data = month_starts2, mapping = aes(x = Day, )) +
+  theme_classic()
+```
 
 
 
