@@ -63,6 +63,9 @@ month_starts <- weather %>%
 month_startsLabels <- weather %>%
   filter(Day==1)
 
+recordTrianglesText <- weather %>%
+  filter(!is.na(RecordText))
+
 ggplot(weather) + 
     labs(title = "Temperature") +
     geom_linerange(mapping = aes(x = dateInYear, ymin = RecordLow, ymax = RecordHigh), color = "#ecebe3", linewidth = 1.2) +
@@ -70,6 +73,8 @@ ggplot(weather) +
     geom_linerange(mapping = aes(x = dateInYear, ymin = Low, ymax = High), color = "#A90048", linewidth = 1.2) +
     geom_vline(data = month_starts, mapping = aes(xintercept = dateInYear), lty = "dashed", alpha = 0.1) +
     scale_x_continuous(breaks = month_startsLabels$dateInYear + 15, labels = month.abb) +
+    geom_text(data = recordTrianglesText, mapping = aes(x = dateInYear, y = RecordHigh, label = "\u25BC"), color = "black", vjust = -0.1) +
+    geom_text(data = recordTrianglesText, mapping = aes(x = dateInYear, y = RecordHigh, label = RecordText), vjust = -1.5, size = 1.5) + 
   theme_classic()
 ```
 
@@ -78,10 +83,20 @@ ggplot(weather) +
 month_starts2 <- weather %>%
   filter(Day==1)
 
+CumulativePrecipitation <- weather %>% 
+  group_by(Month) %>% 
+  filter(Day == max(Day))
+
+recordTriangles <- weather %>% 
+  filter(RecordP == TRUE)
+
 ggplot(weather) + 
   geom_area(mapping = aes(x = dateInYear, y = CulmPrec), fill = "#ebeae2") + 
   geom_path(mapping = aes(x = dateInYear, y = CulmPrec, group = Month), color = "#32a3d8", size = 0.55) +
-  geom_text(data = month_starts2, mapping = aes(x = Day, )) +
+  labs(title = "Precipitation") + 
+  geom_text(data = CumulativePrecipitation, mapping = aes(x = dateInYear, y = CulmPrec, label = sprintf("%.2f", CulmPrec), vjust = -0.5, hjust = 1)) +
+  geom_text(data = recordTriangles, mapping = aes(x = dateInYear, y = CulmPrec, label = "\u25BC"), color = "black", vjust = -0.1) + 
+  geom_vline(data = CumulativePrecipitation, mapping = aes(xintercept = dateInYear), color = "#ececec") +
   theme_classic()
 ```
 
