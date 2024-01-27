@@ -48,6 +48,7 @@ You will need to use reference pages and documentation to discover necessary too
 library(tidyverse)
 library(lubridate)
 library(dplyr)
+library(cowplot)
 weather <- read_csv("https://lmyint.github.io/212_spring_2024/data/sfo_weather.csv")
 ```
 
@@ -66,16 +67,18 @@ month_startsLabels <- weather %>%
 recordTrianglesText <- weather %>%
   filter(!is.na(RecordText))
 
-ggplot(weather) + 
+tempPlot <- ggplot(weather) + 
     labs(title = "Temperature") +
     geom_linerange(mapping = aes(x = dateInYear, ymin = RecordLow, ymax = RecordHigh), color = "#ecebe3", linewidth = 1.2) +
     geom_linerange(mapping = aes(x = dateInYear, ymin = NormalLow, ymax = NormalHigh),  color = "#C8B8BA", linewidth = 1.2) +
     geom_linerange(mapping = aes(x = dateInYear, ymin = Low, ymax = High), color = "#A90048", linewidth = 1.2) +
     geom_vline(data = month_starts, mapping = aes(xintercept = dateInYear), lty = "dashed", alpha = 0.1) +
     scale_x_continuous(breaks = month_startsLabels$dateInYear + 15, labels = month.abb) +
+    scale_y_continuous(breaks = c(0, 40, 80, 120), limits = c(0, 120)) +
     geom_text(data = recordTrianglesText, mapping = aes(x = dateInYear, y = RecordHigh, label = "\u25BC"), color = "black", vjust = -0.1) +
     geom_text(data = recordTrianglesText, mapping = aes(x = dateInYear, y = RecordHigh, label = RecordText), vjust = -1.5, size = 1.5) + 
-  theme_classic()
+  theme_classic() +
+  theme(axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), axis.title.y = element_blank())
 ```
 
 ## Precipitation Graph
@@ -90,14 +93,31 @@ CumulativePrecipitation <- weather %>%
 recordTriangles <- weather %>% 
   filter(RecordP == TRUE)
 
-ggplot(weather) + 
+precipPlot <- ggplot(weather) + 
   geom_area(mapping = aes(x = dateInYear, y = CulmPrec), fill = "#ebeae2") + 
   geom_path(mapping = aes(x = dateInYear, y = CulmPrec, group = Month), color = "#32a3d8", size = 0.55) +
   labs(title = "Precipitation") + 
   geom_text(data = CumulativePrecipitation, mapping = aes(x = dateInYear, y = CulmPrec, label = sprintf("%.2f", CulmPrec), vjust = -0.5, hjust = 1)) +
   geom_text(data = recordTriangles, mapping = aes(x = dateInYear, y = CulmPrec, label = "\u25BC"), color = "black", vjust = -0.1) + 
   geom_vline(data = CumulativePrecipitation, mapping = aes(xintercept = dateInYear), color = "#ececec") +
-  theme_classic()
+  scale_y_continuous(breaks = c(4, 8), limits = c(0, 8)) + 
+  theme_classic() +
+  theme(axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), axis.title.y = element_blank(), axis.text.x = element_blank())
+```
+
+## Combination Graph
+```{r}
+combGrid <- plot_grid(tempPlot, precipPlot, ncol = 1, nrow = 2, rel_heights = c(0.66, 0.33))
+
+title <- ggdraw() +  
+  draw_label( 
+    "SFO weather in 2011", 
+    x = 0.5, 
+    hjust = 0.5, 
+    size = 12, 
+  )
+
+plot_grid(title, combGrid, ncol = 1, rel_heights = c(0.1, 0.9))
 ```
 
 
@@ -105,6 +125,8 @@ ggplot(weather) +
 # AI usage
 
 If you use an AI tool (e.g., ChatGPT, Google Bard) to help with this assignment, please paste below the prompts you use and their associated output.
+
+I had initially used ChatGPT to try to help with creating these plots, however I could not formulate good enough prompts to get the answers I needed. I ended up getting the help I needed from our preceptor and professor. 
 
 **Prompt:**
 
